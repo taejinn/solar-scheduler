@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ParseTodoRequest, ParseTodoResponse, UserPreferences } from '../../types';
 import { getApiKey } from '../../lib/db';
+import { logRequest, logResponse, logApiCall, logApiResponse, logError, logSuccess } from '../../lib/logger';
 
 const SOLAR_API_URL = 'https://api.upstage.ai/v1/chat/completions';
 
@@ -25,11 +26,16 @@ function isTimeInSleepRange(
 }
 
 export async function POST(request: NextRequest) {
+  const startTime = Date.now();
+
   try {
     const body: ParseTodoRequest = await request.json();
     const { text, userPreferences, currentDate, currentTime } = body;
 
+    logRequest('POST', '/api/parse-todo', { text: text?.substring(0, 50) });
+
     if (!text) {
+      logResponse('POST', '/api/parse-todo', 400, Date.now() - startTime);
       return NextResponse.json<ParseTodoResponse>(
         { success: false, error: '텍스트를 입력해주세요.' },
         { status: 400 }
@@ -38,6 +44,8 @@ export async function POST(request: NextRequest) {
 
     const apiKey = getApiKey();
     if (!apiKey) {
+      logError('API 키 미설정');
+      logResponse('POST', '/api/parse-todo', 500, Date.now() - startTime);
       return NextResponse.json<ParseTodoResponse>(
         { success: false, error: 'API 키가 설정되지 않았습니다. 설정에서 API 키를 입력해주세요.' },
         { status: 500 }
@@ -72,6 +80,9 @@ Examples:
 - "모레 아침 운동하기" → {"title": "운동하기", "dueDate": "DAY_AFTER_TOMORROW", "dueTime": "09:00", "category": "personal"}
 - "다음주 월요일까지 과제 완료" → {"title": "과제 완료", "dueDate": "NEXT_MONDAY", "dueTime": "23:59", "category": "study"}`;
 
+    logApiCall('Solar', '일정 파싱');
+    const apiStartTime = Date.now();
+
     const response = await fetch(SOLAR_API_URL, {
       method: 'POST',
       headers: {
@@ -91,7 +102,9 @@ Examples:
 
     if (!response.ok) {
       const errorData = await response.text();
-      console.error('Solar API error:', errorData);
+      logApiResponse('Solar', false, Date.now() - apiStartTime);
+      logError('Solar API 오류', errorData);
+      logResponse('POST', '/api/parse-todo', 502, Date.now() - startTime);
       return NextResponse.json<ParseTodoResponse>(
         { success: false, error: 'AI 서비스 연결에 실패했습니다.' },
         { status: 502 }
@@ -101,7 +114,10 @@ Examples:
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content;
 
+    logApiResponse('Solar', true, Date.now() - apiStartTime);
+
     if (!content) {
+      logResponse('POST', '/api/parse-todo', 500, Date.now() - startTime);
       return NextResponse.json<ParseTodoResponse>(
         { success: false, error: '응답을 받지 못했습니다.' },
         { status: 500 }
@@ -110,6 +126,7 @@ Examples:
 
     const jsonMatch = content.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
+      logResponse('POST', '/api/parse-todo', 500, Date.now() - startTime);
       return NextResponse.json<ParseTodoResponse>(
         { success: false, error: '투두 정보를 파싱할 수 없습니다.' },
         { status: 500 }
@@ -122,6 +139,7 @@ Examples:
     const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
 
     if (!dateRegex.test(parsed.dueDate)) {
+      logResponse('POST', '/api/parse-todo', 500, Date.now() - startTime);
       return NextResponse.json<ParseTodoResponse>(
         { success: false, error: '올바른 날짜 형식이 아닙니다.' },
         { status: 500 }
@@ -129,6 +147,7 @@ Examples:
     }
 
     if (!timeRegex.test(parsed.dueTime)) {
+      logResponse('POST', '/api/parse-todo', 500, Date.now() - startTime);
       return NextResponse.json<ParseTodoResponse>(
         { success: false, error: '올바른 시간 형식이 아닙니다.' },
         { status: 500 }
@@ -142,6 +161,9 @@ Examples:
       }
     }
 
+    logSuccess(`일정 파싱 완료: "${parsed.title}" (${parsed.dueDate} ${parsed.dueTime})`);
+    logResponse('POST', '/api/parse-todo', 200, Date.now() - startTime);
+
     return NextResponse.json<ParseTodoResponse>({
       success: true,
       title: parsed.title,
@@ -151,7 +173,8 @@ Examples:
       warning,
     });
   } catch (error) {
-    console.error('Parse todo error:', error);
+    logError('일정 파싱 오류', error);
+    logResponse('POST', '/api/parse-todo', 500, Date.now() - startTime);
     return NextResponse.json<ParseTodoResponse>(
       { success: false, error: '투두 분석 중 오류가 발생했습니다.' },
       { status: 500 }

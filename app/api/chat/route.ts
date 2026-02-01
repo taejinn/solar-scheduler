@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ChatRequest, ChatResponse, Todo } from '../../types';
 import { getApiKey } from '../../lib/db';
+import { logRequest, logResponse, logApiCall, logApiResponse, logError } from '../../lib/logger';
 
 const SOLAR_API_URL = 'https://api.upstage.ai/v1/chat/completions';
 
@@ -15,11 +16,16 @@ function getDayName(date: Date): string {
 }
 
 export async function POST(request: NextRequest) {
+  const startTime = Date.now();
+
   try {
     const body: ChatRequest = await request.json();
     const { message, todos, userPreferences, currentDate, currentTime } = body;
 
+    logRequest('POST', '/api/chat', { message: message?.substring(0, 50) });
+
     if (!message) {
+      logResponse('POST', '/api/chat', 400, Date.now() - startTime);
       return NextResponse.json<ChatResponse>(
         { success: false, error: '메시지를 입력해주세요.' },
         { status: 400 }
@@ -28,6 +34,8 @@ export async function POST(request: NextRequest) {
 
     const apiKey = getApiKey();
     if (!apiKey) {
+      logError('API 키 미설정');
+      logResponse('POST', '/api/chat', 500, Date.now() - startTime);
       return NextResponse.json<ChatResponse>(
         { success: false, error: 'API 키가 설정되지 않았습니다. 설정에서 API 키를 입력해주세요.' },
         { status: 500 }
@@ -66,6 +74,9 @@ Rules:
 - Be friendly and use natural Korean expressions
 - When listing todos, format them nicely with bullet points`;
 
+    logApiCall('Solar', '채팅 응답 생성');
+    const apiStartTime = Date.now();
+
     const response = await fetch(SOLAR_API_URL, {
       method: 'POST',
       headers: {
@@ -85,7 +96,9 @@ Rules:
 
     if (!response.ok) {
       const errorData = await response.text();
-      console.error('Solar API error:', errorData);
+      logApiResponse('Solar', false, Date.now() - apiStartTime);
+      logError('Solar API 오류', errorData);
+      logResponse('POST', '/api/chat', 502, Date.now() - startTime);
       return NextResponse.json<ChatResponse>(
         { success: false, error: 'AI 서비스 연결에 실패했습니다.' },
         { status: 502 }
@@ -95,19 +108,24 @@ Rules:
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content;
 
+    logApiResponse('Solar', true, Date.now() - apiStartTime);
+
     if (!content) {
+      logResponse('POST', '/api/chat', 500, Date.now() - startTime);
       return NextResponse.json<ChatResponse>(
         { success: false, error: '응답을 받지 못했습니다.' },
         { status: 500 }
       );
     }
 
+    logResponse('POST', '/api/chat', 200, Date.now() - startTime);
     return NextResponse.json<ChatResponse>({
       success: true,
       message: content.trim(),
     });
   } catch (error) {
-    console.error('Chat error:', error);
+    logError('채팅 처리 오류', error);
+    logResponse('POST', '/api/chat', 500, Date.now() - startTime);
     return NextResponse.json<ChatResponse>(
       { success: false, error: '채팅 처리 중 오류가 발생했습니다.' },
       { status: 500 }
