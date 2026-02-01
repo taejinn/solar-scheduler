@@ -15,7 +15,7 @@
 </h1>
 
 <p align="center">
-  <strong>AI 기반 스마트 일정 관리</strong><br/>
+  <strong>Upstage Solar 기반 스마트 일정 관리</strong><br/>
   자연어로 일정을 입력하면 AI가 자동으로 분석하고 관리해줍니다
 </p>
 
@@ -42,7 +42,7 @@
 
 AI가 자동으로 날짜, 시간, 카테고리를 분석합니다.
 
-### 💬 AI 어시스턴트
+### 💬 Upstage Solar AI 어시스턴트
 일정에 대해 자연스럽게 질문하세요.
 
 | 질문 예시 | AI 응답 |
@@ -80,7 +80,7 @@ AI가 자동으로 날짜, 시간, 카테고리를 분석합니다.
 
 #### 2. Upstage Solar API 키 발급
 
-> AI 기능을 사용하려면 API 키가 필요합니다 (무료).
+> Upstage Solar AI 기능을 사용하려면 API 키가 필요합니다 (무료).
 
 1. [console.upstage.ai](https://console.upstage.ai) 접속
 2. 회원가입 또는 로그인
@@ -134,9 +134,9 @@ npm run dev
    - `내일 오후 3시 회의`
    - `다음주 금요일까지 프로젝트 마감`
    - `매주 월요일 아침 운동`
-3. AI가 자동 분석 후 캘린더에 추가
+3. Upstage Solar가 자동 분석 후 캘린더에 추가
 
-### AI 어시스턴트 사용하기
+### Upstage Solar AI 어시스턴트 사용하기
 
 1. 화면 우측 하단 **채팅 버튼** 클릭
 2. 일정에 대해 자유롭게 질문:
