@@ -6,8 +6,12 @@
   <img src="https://img.shields.io/badge/SQLite-3-003B57?style=for-the-badge&logo=sqlite" alt="SQLite" />
 </p>
 
+<p align="center">
+  <img src="https://avatars.githubusercontent.com/u/83510319" alt="Upstage" width="80" height="80" style="border-radius: 16px;" />
+</p>
+
 <h1 align="center">
-  ☀️ Solar Scheduler
+  Solar Scheduler
 </h1>
 
 <p align="center">
