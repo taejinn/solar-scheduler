@@ -1,36 +1,112 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Solar Scheduler
 
-## Getting Started
+AI 기반 스마트 일정 관리 앱입니다. 자연어로 일정을 입력하면 AI가 자동으로 분석하고 관리해줍니다.
 
-First, run the development server:
+## 주요 기능
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **자연어 일정 입력** - "내일 오후 3시 회의" 처럼 입력하면 자동 분석
+- **AI 어시스턴트** - "오늘 일정 뭐있어?" 같은 질문에 답변
+- **수면 시간 경고** - 설정한 수면 시간과 겹치는 일정 경고
+- **캘린더/목록 뷰** - 월간 캘린더와 목록 보기 지원
+- **빠른 검색** - Cmd+K (Mac) / Ctrl+K (Windows)로 일정 검색
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 설치 및 실행 방법
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 1단계: Node.js 설치
 
-## Learn More
+이 앱을 실행하려면 먼저 Node.js가 필요합니다.
 
-To learn more about Next.js, take a look at the following resources:
+#### Mac
+1. https://nodejs.org 접속
+2. **LTS** 버전 다운로드 (왼쪽 버튼)
+3. 다운로드된 파일 실행하여 설치
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+#### Windows
+1. https://nodejs.org 접속
+2. **LTS** 버전 다운로드 (왼쪽 버튼)
+3. 다운로드된 파일 실행하여 설치
+4. 설치 중 "Add to PATH" 옵션 체크 확인
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 2단계: 앱 실행
 
-## Deploy on Vercel
+#### Mac
+1. 터미널 열기 (Spotlight에서 "터미널" 검색)
+2. 다운로드한 폴더로 이동:
+   ```
+   cd ~/Downloads/solar-scheduler
+   ```
+3. 실행:
+   ```
+   ./start.sh
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+또는 Finder에서 `start.sh` 파일을 우클릭 → "터미널로 열기"
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+#### Windows
+1. 다운로드한 폴더 열기
+2. `start.bat` 파일 더블클릭
+
+### 3단계: 초기 설정
+
+1. 브라우저가 자동으로 열립니다 (http://localhost:3000)
+2. **Upstage Solar API 키** 입력
+   - https://console.upstage.ai 에서 무료 가입
+   - API 키 발급 후 입력
+3. 수면 시간 설정
+4. 완료!
+
+---
+
+## 사용법
+
+### 일정 추가
+좌측 "일정 만들기" 버튼 클릭 후 자연어로 입력:
+- "내일 오후 3시 팀 미팅"
+- "금요일까지 보고서 제출"
+- "다음주 월요일 아침 운동"
+
+### AI 어시스턴트
+우측 하단 채팅 버튼 클릭:
+- "오늘 며칠이야?"
+- "내일 일정 뭐있어?"
+- "이번주 할 일 알려줘"
+- "완료 안된 일정 몇 개야?"
+
+### 검색
+`Cmd+K` (Mac) 또는 `Ctrl+K` (Windows)로 빠른 검색
+
+---
+
+## 종료 방법
+
+터미널/명령 프롬프트 창에서 `Ctrl+C`를 누르거나 창을 닫으세요.
+
+---
+
+## 문제 해결
+
+### "Node.js가 설치되어 있지 않습니다" 오류
+→ 1단계의 Node.js 설치를 먼저 진행해주세요.
+
+### "API 키가 유효하지 않습니다" 오류
+→ https://console.upstage.ai 에서 API 키를 다시 확인해주세요.
+
+### 포트 3000이 이미 사용 중
+→ 다른 프로그램이 3000번 포트를 사용 중입니다. 해당 프로그램을 종료하거나, 컴퓨터를 재시작해주세요.
+
+---
+
+## 데이터 저장 위치
+
+모든 데이터는 `data/solar-scheduler.db` 파일에 저장됩니다.
+백업하려면 이 파일을 복사해두세요.
+
+---
+
+## 라이센스
+
+MIT License
+
+Powered by [Upstage Solar API](https://www.upstage.ai)
