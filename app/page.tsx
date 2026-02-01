@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useDebouncedCallback } from 'use-debounce';
 import AppLayout from './components/layout/AppLayout';
 import Header from './components/layout/Header';
 import CalendarView from './components/calendar/CalendarView';
@@ -12,24 +13,46 @@ import ChatBot from './components/ChatBot';
 import { UserPreferences, Todo, AppSettings } from './types';
 import Onboarding from './components/Onboarding';
 
+type ViewType = 'month' | 'week' | 'day' | 'list' | 'inbox';
+
 export default function Home() {
-  const [view, setView] = useState<'month' | 'week' | 'day' | 'list' | 'inbox'>('month');
+  const [view, setView] = useState<ViewType>('month');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [todos, setTodos] = useState<Todo[]>([]);
   const [userPreferences, setUserPreferences] = useState<UserPreferences | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [iscreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isInbox, setIsInbox] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
 
+  // Debounced save function
+  const debouncedSaveTodos = useDebouncedCallback(
+    async (todosToSave: Todo[]) => {
+      try {
+        await fetch('/api/data', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ todos: todosToSave }),
+        });
+      } catch (error) {
+        console.error('Failed to save todos:', error);
+      }
+    },
+    1000
+  );
+
   // Load Data from server
   useEffect(() => {
+    const abortController = new AbortController();
+
     async function loadData() {
       try {
-        const response = await fetch('/api/data');
+        const response = await fetch('/api/data', {
+          signal: abortController.signal,
+        });
         if (response.ok) {
           const data = await response.json();
           setTodos(data.todos || []);
@@ -43,7 +66,8 @@ export default function Home() {
         } else {
           setShowOnboarding(true);
         }
-      } catch (error) {
+      } catch (error: any) {
+        if (error.name === 'AbortError') return;
         console.error('Failed to load data:', error);
         setShowOnboarding(true);
       } finally {
@@ -52,25 +76,15 @@ export default function Home() {
       }
     }
     loadData();
+
+    return () => abortController.abort();
   }, []);
 
-  // Save todos to server
+  // Save todos to server (debounced)
   useEffect(() => {
     if (!isInitialized) return;
-
-    async function saveTodos() {
-      try {
-        await fetch('/api/data', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ todos }),
-        });
-      } catch (error) {
-        console.error('Failed to save todos:', error);
-      }
-    }
-    saveTodos();
-  }, [todos, isInitialized]);
+    debouncedSaveTodos(todos);
+  }, [todos, isInitialized, debouncedSaveTodos]);
 
   const handleOnboardingComplete = async (preferences: UserPreferences, settings?: AppSettings) => {
     setUserPreferences(preferences);
@@ -115,30 +129,29 @@ export default function Home() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  const handleViewChange = (v: string) => {
+    if (v === 'inbox') {
+      setView('list');
+      setIsInbox(true);
+    } else if (v === 'calendar' || v === 'month') {
+      setView('month');
+      setIsInbox(false);
+    } else if (v === 'settings') {
+      setIsSettingsOpen(true);
+      setIsInbox(false);
+    } else if (['week', 'day', 'list'].includes(v)) {
+      setView(v as ViewType);
+      setIsInbox(false);
+    }
+  };
+
   return (
     <>
       <AppLayout
         onCreateClick={() => setIsCreateModalOpen(true)}
         currentView={view === 'list' && isInbox ? 'inbox' : view}
         onSearchClick={() => setIsCommandPaletteOpen(true)}
-        onViewChange={(v) => {
-          if (v === 'inbox') {
-            // Logic for inbox view, maybe just list view for now? 
-            // We'll define inbox as list view + some inbox filter later? 
-            // For now mapping inbox -> list
-            setView('list');
-            setIsInbox(true); // Set isInbox to true when inbox view is selected
-          } else if (v === 'calendar' || v === 'month') {
-            setView('month');
-            setIsInbox(false); // Reset isInbox when switching to calendar views
-          } else if (v === 'settings') {
-            setIsSettingsOpen(true);
-            setIsInbox(false);
-          } else {
-            setView(v as any);
-            setIsInbox(false); // Reset isInbox for other views
-          }
-        }}
+        onViewChange={handleViewChange}
       >
         <Header
           currentDate={currentDate}
@@ -167,7 +180,7 @@ export default function Home() {
       </AppLayout>
 
       <CreateTodoModal
-        isOpen={iscreateModalOpen}
+        isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         userPreferences={userPreferences}
         onTodoCreated={handleTodoCreated}
@@ -179,11 +192,6 @@ export default function Home() {
         preferences={userPreferences}
         onSave={handleOnboardingComplete}
       />
-
-      {/* Quick Find Placeholder - leveraging Chat for now or just a specific modal? */}
-      {/* Let's make "CreateModal" multipurpose or leave Quick Find separate later. 
-          For now, 'CreateTodoModal' is the main 'Command Bar' for tasks. 
-      */}
 
       <CommandPalette
         isOpen={isCommandPaletteOpen}

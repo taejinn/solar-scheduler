@@ -74,6 +74,10 @@ export default function ChatBot({ todos, userPreferences }: ChatBotProps) {
         body: JSON.stringify(requestBody),
       });
 
+      if (!response.ok) {
+        throw new Error(`서버 오류: ${response.status}`);
+      }
+
       const data: ChatResponse = await response.json();
 
       const assistantMessage: ChatMessage = {

@@ -25,23 +25,17 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
     setIsLoading(true);
     setError(null);
 
-    // Simple validation - try a minimal API call
     try {
-      const response = await fetch('https://api.upstage.ai/v1/chat/completions', {
+      const response = await fetch('/api/validate-key', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey.trim()}`,
-        },
-        body: JSON.stringify({
-          model: 'solar-pro',
-          messages: [{ role: 'user', content: 'hi' }],
-          max_tokens: 1,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ apiKey: apiKey.trim() }),
       });
 
-      if (!response.ok) {
-        throw new Error('API 키가 유효하지 않습니다.');
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'API 키가 유효하지 않습니다.');
       }
 
       setStep(2);
