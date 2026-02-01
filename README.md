@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <img src="https://avatars.githubusercontent.com/u/83510319" alt="Upstage" width="80" height="80" style="border-radius: 16px;" />
+  <img src="https://cdn.prod.website-files.com/6743d5190bb2b52f38e99e37/6743f495cc3c0ed693e0b5f3_Logo_Black.png" alt="Upstage" height="40" />
 </p>
 
 <h1 align="center">
