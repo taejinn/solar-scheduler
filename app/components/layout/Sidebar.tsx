@@ -49,13 +49,9 @@ export default function Sidebar({ onCreateClick, onSearchClick, currentView, onV
 
     return (
         <aside className="w-[240px] h-full flex flex-col border-r border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-[#202020]">
-            {/* Header / User Switcher */}
-            <div className="h-12 flex items-center px-4 gap-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer mb-2">
-                <div className="w-6 h-6 rounded bg-amber-500 flex items-center justify-center text-xs text-white font-bold">
-                    S
-                </div>
+            {/* Header */}
+            <div className="h-12 flex items-center px-4 mb-2">
                 <span className="text-sm font-medium truncate flex-1">Solar Scheduler</span>
-                <div className="text-xs text-zinc-400">v0.2</div>
             </div>
 
             {/* Primary Actions */}
